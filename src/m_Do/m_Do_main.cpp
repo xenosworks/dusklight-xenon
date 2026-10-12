@@ -640,6 +640,10 @@ int game_main(int argc, char* argv[]) {
         mDoMain::developmentMode = parsed_arg_options["develop"].as<bool>();  // Enable Dev Mode for Debugging
         dusk::OSReportReallyForceEnable = parsed_arg_options["develop"].as<bool>();  // Print OSReport to console
     }
+#ifdef __XSDK__
+    // The Xbox 360 has no command line to ask for the game's reports, which are all it shows yet.
+    dusk::OSReportReallyForceEnable = true;
+#endif
 
     log_build_info();
 
@@ -738,6 +742,8 @@ int game_main(int argc, char* argv[]) {
     dusk::audio::SetMasterVolume(dusk::audio::MasterVolumeToLinear(dusk::getSettings().audio.masterVolume / 100.0f));
     dusk::audio::SetEnableReverb(dusk::getSettings().audio.enableReverb);
 
+    // The Xbox 360 runs the game on the null backend, which is all it has until vulkan4xenon draws.
+#ifndef __XSDK__
     // Run ImGui UI loop if Aurora couldn't initialize a backend
     if (auroraInfo.backend == BACKEND_NULL) {
         launchUILoop();
@@ -754,6 +760,7 @@ int game_main(int argc, char* argv[]) {
         aurora_shutdown();
         return 0;
     }
+#endif
 
     if (dusk::getSettings().game.enableHighQualityMinimapTextures.getValue()) {
         dusk::hq_minimap::set_active(true);
@@ -767,6 +774,26 @@ int game_main(int argc, char* argv[]) {
     dusk::ui::push_document(std::make_unique<dusk::ui::MenuBar>(), false);
     dusk::ui::push_document(std::make_unique<dusk::ui::CommandConsole>(), false);
 
+#ifdef __XSDK__
+    // The disc beside the title; the game reads its ID before it starts, so it ends without one.
+    constexpr const char* XenonDvdPath = "game:\\dusklight.iso";
+    constexpr bool skipPreLaunchUI = true;
+    constexpr bool showPrelaunchAfterInit = false;
+    DuskLog.info("Loading DVD image: {}", XenonDvdPath);
+    if (!aurora_dvd_open(XenonDvdPath)) {
+        DuskLog.error("Failed to open DVD image: {}; the disc is missing", XenonDvdPath);
+        borealis::shutdown();
+        borealis::sentry::shutdown();
+        borealis::log::shutdown();
+        fflush(stdout);
+        fflush(stderr);
+        dusk::ui::shutdown();
+        dusk::config::shutdown();
+        aurora_shutdown();
+        return 1;
+    }
+    dusk::IsGameLaunched = true;
+#else
     // Invalidate a bad saved isoPath so that Dusklight can't get blocked from starting up.
     // This is only a metadata check; full hash verification is handled by the prelaunch UI.
     bool forcePreLaunchUI = false;
@@ -903,6 +930,7 @@ int game_main(int argc, char* argv[]) {
 
         dusk::IsGameLaunched = true;
     }
+#endif
 
     dusk::version::init();
     LanguageInit();
