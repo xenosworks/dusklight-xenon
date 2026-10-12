@@ -932,16 +932,6 @@ void GXSetVCacheMetric(GXVCachePerf attr) {
 void GXReadVCacheMetric(u32* check, u32* miss, u32* stall) {
     STUB_LOG();
 }
-void GXSetDrawSync(u16 token) {
-    STUB_LOG();
-}
-GXDrawSyncCallback GXSetDrawSyncCallback(GXDrawSyncCallback cb) {
-    STUB_LOG();
-    return cb;
-}
-void GXWaitDrawDone(void) {
-    STUB_LOG();
-}
 void GXResetWriteGatherPipe(void) {
     STUB_LOG();
 }
