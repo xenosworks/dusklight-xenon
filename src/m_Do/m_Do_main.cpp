@@ -74,6 +74,9 @@
 #include "dusk/ui/touch_controls.hpp"
 #include "dusk/ui/ui.hpp"
 #include "dusk/version.hpp"
+#ifdef __XSDK__
+#include "dusk/xenon_run.hpp"
+#endif
 
 #include "d/actor/d_a_movie_player.h"
 
@@ -333,6 +336,10 @@ void main01(void) {
         }
 
         aurora_end_frame();
+
+#ifdef __XSDK__
+        dusk::xenon_run::after_frame();
+#endif
 
         FrameMark;
 

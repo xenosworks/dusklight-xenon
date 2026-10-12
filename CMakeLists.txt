@@ -282,6 +282,8 @@ endif ()
 include(files.cmake)
 if (XSDK)
     list(REMOVE_ITEM DUSK_FILES src/dusk/mods/svc/net.cpp)
+    # The console's test run (vulkan4xenon's milestone 9).
+    list(APPEND DUSK_FILES src/dusk/xenon_run.cpp src/dusk/xenon_run.hpp)
 endif ()
 if (NOT AURORA_GFX_BACKEND STREQUAL "dawn")
     # The mods' gfx service hands out WebGPU, which only Aurora's Dawn backend has.
