@@ -707,6 +707,9 @@ int game_main(int argc, char* argv[]) {
         // The Xbox 360 draws into vulkan4xenon's one display, 1280x720, which the console scales to its output.
         config.windowWidth = 1280;
         config.windowHeight = 720;
+        // Two pipeline compile threads, not the four Aurora picks for the console's six: the vulkan4xenon backend
+        // creates one pipeline at a time, under one lock (aurora-xenon:lib/vulkan4xenon/pipeline.cpp), so more wait.
+        config.pipelineJobs = 2;
 #else
         const int lastWindowWidth = dusk::getSettings().video.lastWindowWidth.getValue();
         const int lastWindowHeight = dusk::getSettings().video.lastWindowHeight.getValue();

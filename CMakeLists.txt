@@ -98,6 +98,10 @@ if (XSDK)
     set(AURORA_STORAGE_POOL_SIZE 2097152 CACHE STRING "Bytes of storage data a frame can record" FORCE)
     set(AURORA_TEXTURE_UPLOAD_POOL_SIZE 8388608 CACHE STRING
         "Bytes of texture uploads a frame stages in its pool; larger ones are staged apart" FORCE)
+    # Quads, strips and fans of up to 4096 vertices take their indices from Aurora's patterns, built once, instead of
+    # having them written into the frame's index pool; the patterns' indices are 16-bit (aurora-xenon:CMakeLists.txt).
+    set(AURORA_INDEX_PATTERN_VERTICES 4096 CACHE STRING
+        "Vertices up to which a draw takes its indices from prebuilt patterns" FORCE)
     # Aurora's texture caches, capped near what the same run used: 9.9 MiB of converted textures kept for reuse, in GPU
     # memory, and 12.8 MiB converted ahead of their first draw and 1.9 MiB queued for it, in newlib's heap. At the PC's
     # 128, 128 and 64 MiB they could grow into the last of the console's memory. Past a cap the oldest texture kept or
