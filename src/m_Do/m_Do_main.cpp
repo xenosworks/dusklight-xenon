@@ -997,9 +997,15 @@ int game_main(int argc, char* argv[]) {
     }
 #endif
 
+#ifndef __XSDK__
     if (!dusk::getSettings().backend.wasPresetChosen) {
         dusk::ui::push_document(std::make_unique<dusk::ui::PresetWindow>());
     }
+#else
+    // The Xbox 360's backend doesn't draw RmlUi, so the preset window would take the controller's
+    // presses unseen: on the console a press picked the Dusk preset, whose 4x shadows want
+    // 1536x1536 targets, past vulkan4xenon's 1280x720. The settings keep their defaults.
+#endif
 
     OSReport("Starting main01 (Game Loop)...\n");
 
