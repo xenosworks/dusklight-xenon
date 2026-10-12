@@ -2368,7 +2368,7 @@ void daNPC_TK_c::executeWolfPerch() {
         pathPnt2 = dPath_GetPnt(mWolfPathData, mPathStep2)->m_position;
         cLib_addCalcPos2(&field_0x6fc, pathPnt2, 0.1f, 3.0f);
 
-#if TARGET_LITTLE_ENDIAN
+#if TARGET_PC
         Vec copy = dPath_GetPnt(mWolfPathData, mPathStep2 - 1)->m_position;
         s16 angleY = cLib_targetAngleY(&current.pos,
                                        &copy);

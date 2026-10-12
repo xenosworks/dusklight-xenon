@@ -93,7 +93,7 @@ int dEnvSe_c::execute_common(dStage_SoundInfo_c* i_soundInf, s8* param_1, u8 par
         if (memcmp(data_p->field_0x0, "sndtag", 6) == 0) {
             if (!(*param_1 & 1)) {
                 if (data_p->field_0x17 != 0) {
-#if TARGET_LITTLE_ENDIAN
+#if TARGET_PC
                     Vec copy = data_p->field_0x8;
                     mDoAud_mEnvse_initStaticEnvSe(data_p->field_0x17, data_p->field_0x14,
                                                   data_p->field_0x19, data_p->field_0x1a,

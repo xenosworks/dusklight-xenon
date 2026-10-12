@@ -9,6 +9,11 @@
 #include "d/d_com_inf_game.h"
 #include "f_op/f_op_actor.h"
 
+#ifdef __XSDK__
+// newlib's <ctype.h> defines _C, a member's name; nothing below uses ctype.h's macros.
+#undef _C
+#endif
+
 bool dEvLib_callback_c::eventUpdate() {
     if (mAction == NULL) {
         return FALSE;

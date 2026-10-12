@@ -44,9 +44,17 @@ public:
     virtual bool eventRun() { return true; }
     virtual bool eventEnd() { return true; }
 
+#ifdef __XSDK__
+// newlib's <ctype.h> defines _C, this member's name.
+#pragma push_macro("_C")
+#undef _C
+#endif
     /* 0x4 */ fopAc_ac_c* mActor;
     /* 0x8 */ action_class<dEvLib_callback_c>* mAction;
     /* 0xC */ u16 _C;
+#ifdef __XSDK__
+#pragma pop_macro("_C")
+#endif
 };
 
 #endif /* D_EVENT_D_EVENT_LIB_H */

@@ -268,7 +268,7 @@ public:
      * @param b The output Vec
      */
     static void multVec(const Vec* a, Vec* b) { PSMTXMultVec(now, a, b); }
-#if TARGET_LITTLE_ENDIAN
+#if TARGET_PC
     static void multVec(const BE(Vec)* a, Vec* b) {
         Vec aCopy = *a;
         multVec(&aCopy, b);

@@ -28,7 +28,7 @@ static void dEnvSe_getNearPathPos(cXyz* param_0, cXyz* param_1, dPath* i_path) {
     cM3dGLin sp14;
 
     for (i = 0; i < i_path->m_num; i++) {
-#if TARGET_LITTLE_ENDIAN
+#if TARGET_PC
         Vec copy = point_p->m_position;
         sp8 = cM3d_LenSq(param_1, &copy);
 #else

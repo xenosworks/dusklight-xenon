@@ -214,7 +214,12 @@ typedef struct MOD_META_ALIGN ModMetaHookFn {
     void* resolved; /* runtime only */
 } ModMetaHookFn;
 
+#ifdef __XSDK__
+/* 32-bit pointers on the Xbox 360, which loads no code mods. */
+static_assert(sizeof(ModMetaHookFn) == 16);
+#else
 static_assert(sizeof(ModMetaHookFn) == 24);
+#endif
 
 /*
  * Hook on a member function: `pmf` holds the compiler's pointer-to-member representation
@@ -251,7 +256,12 @@ typedef struct MOD_META_ALIGN ModMetaHookMemExt {
     void* resolved; /* runtime only */
 } ModMetaHookMemExt;
 
+#ifdef __XSDK__
+/* 32-bit pointers on the Xbox 360, which loads no code mods. */
+static_assert(sizeof(ModMetaHookMemExt) == 16);
+#else
 static_assert(sizeof(ModMetaHookMemExt) == 24);
+#endif
 
 /*
  * Hook on a function by symbol name, for targets that cannot be named in C++ (file-local statics,

@@ -26,6 +26,7 @@
 #else
     #define BSWAP16(x) (x)
     #define BSWAP32(x) (x)
+    #define BSWAP64(x) (x)
 #endif
 
 // clang-format off
