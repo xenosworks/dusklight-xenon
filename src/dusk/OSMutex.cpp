@@ -78,7 +78,12 @@ void ClearCondMap() {
     for (auto& pair : map) {
         pair.second->cv.notify_all();
     }
+#ifndef __XSDK__
     map.clear();
+#else
+    // As the message queues in stubs.cpp: on the Xbox 360, a condition variable used after its
+    // memory is freed corrupts the heap, and a thread can be about to wait on one, so they stay.
+#endif
 }
 
 // ============================================================================

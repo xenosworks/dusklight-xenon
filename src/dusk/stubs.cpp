@@ -88,7 +88,14 @@ static void ClearMsgQueueMap() {
         value->cvReceive.notify_all();
         value->cvSend.notify_all();
     }
+#ifndef __XSDK__
     map.clear();
+#else
+    // The threads just woken relock their queue's mutex on the way out. On the Xbox 360 a mutex
+    // is a pointer to a critical section xsdk allocates, so relocking one whose memory was freed
+    // takes malloc's free-list link for it and corrupts the heap; free crashed at shutdown.
+    // The queues stay until the title ends.
+#endif
 }
 
 void OSInitMessageQueue(OSMessageQueue* mq, OSMessage* msgArray, s32 msgCount) {
