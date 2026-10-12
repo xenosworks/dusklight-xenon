@@ -98,6 +98,15 @@ if (XSDK)
     set(AURORA_STORAGE_POOL_SIZE 2097152 CACHE STRING "Bytes of storage data a frame can record" FORCE)
     set(AURORA_TEXTURE_UPLOAD_POOL_SIZE 8388608 CACHE STRING
         "Bytes of texture uploads a frame stages in its pool; larger ones are staged apart" FORCE)
+    # Aurora's texture caches, capped near what the same run used: 9.9 MiB of converted textures kept for reuse, in GPU
+    # memory, and 12.8 MiB converted ahead of their first draw and 1.9 MiB queued for it, in newlib's heap. At the PC's
+    # 128, 128 and 64 MiB they could grow into the last of the console's memory. Past a cap the oldest texture kept or
+    # converted ahead is dropped, or one isn't queued, and a texture is converted at its first draw.
+    set(AURORA_TEXTURE_CONTENT_CACHE_BYTES 16777216 CACHE STRING "Bytes of converted textures kept for reuse" FORCE)
+    set(AURORA_TEXTURE_PRECONVERT_READY_BYTES 16777216 CACHE STRING
+        "Bytes of pre-converted textures waiting for their first draw" FORCE)
+    set(AURORA_TEXTURE_PRECONVERT_QUEUE_BYTES 8388608 CACHE STRING "Bytes of textures queued for pre-conversion"
+        FORCE)
   endif ()
   set(AURORA_NOD_PROVIDER iso CACHE STRING "How to provide nod" FORCE)
   set(AURORA_SDL3_PROVIDER system CACHE STRING "How to provide SDL3" FORCE)
