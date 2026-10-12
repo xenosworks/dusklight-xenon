@@ -281,7 +281,9 @@ void ModLoader::init_services() {
             &svc::g_gameModule,
             &svc::g_cameraModule,
             &svc::g_windowModule,
+#ifdef AURORA_GFX_BACKEND_DAWN
             &svc::g_gfxModule,
+#endif
             &svc::g_audioResModule,
             &svc::g_saveModule,
             &svc::g_stageModule,

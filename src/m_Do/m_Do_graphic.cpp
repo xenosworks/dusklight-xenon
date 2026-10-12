@@ -48,7 +48,9 @@
 #if TARGET_PC
 #include "dusk/dusk.h"
 #include "dusk/game_clock.h"
+#ifdef AURORA_GFX_BACKEND_DAWN
 #include "dusk/gfx.hpp"
+#endif
 #include "dusk/imgui/ImGuiConsole.hpp"
 #include "dusk/interp/frame_interpolation.h"
 #include "dusk/logging.h"
@@ -2330,7 +2332,7 @@ int mDoGph_Painter() {
 
             GXSetClipMode(GX_CLIP_ENABLE);
 
-#if TARGET_PC
+#if TARGET_PC && defined(AURORA_GFX_BACKEND_DAWN)
             dusk::mods::gfx_run_stage(GFX_STAGE_SCENE_BEGIN, &camera_p->view, view_port);
 #endif
 
@@ -2362,7 +2364,7 @@ int mDoGph_Painter() {
 
             GX_DEBUG_GROUP(dComIfGd_drawShadow, camera_p->view.viewMtx);
 
-#if TARGET_PC
+#if TARGET_PC && defined(AURORA_GFX_BACKEND_DAWN)
             dusk::mods::gfx_run_stage(GFX_STAGE_SCENE_AFTER_TERRAIN, &camera_p->view, view_port);
 #endif
 
@@ -2391,7 +2393,7 @@ int mDoGph_Painter() {
 
             GX_DEBUG_GROUP(dComIfGd_drawOpaListPacket);
 
-#if TARGET_PC
+#if TARGET_PC && defined(AURORA_GFX_BACKEND_DAWN)
             dusk::mods::gfx_run_stage(GFX_STAGE_SCENE_AFTER_OPAQUE, &camera_p->view, view_port);
 #endif
 
@@ -2755,7 +2757,7 @@ int mDoGph_Painter() {
     captureScreenSetPort();
     #endif
 
-#if TARGET_PC
+#if TARGET_PC && defined(AURORA_GFX_BACKEND_DAWN)
     dusk::mods::gfx_run_stage(GFX_STAGE_FRAME_BEFORE_HUD);
 #endif
 
@@ -2816,7 +2818,7 @@ int mDoGph_Painter() {
         dComIfGd_draw2DXlu();
     }
 
-#if TARGET_PC
+#if TARGET_PC && defined(AURORA_GFX_BACKEND_DAWN)
     dusk::mods::gfx_run_stage(GFX_STAGE_FRAME_AFTER_HUD);
 #endif
 

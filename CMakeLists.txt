@@ -260,6 +260,10 @@ if(_arch MATCHES "^(arm|aarch64)" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQU
 endif()
 
 include(files.cmake)
+if (NOT AURORA_GFX_BACKEND STREQUAL "dawn")
+    # The mods' gfx service hands out WebGPU, which only Aurora's Dawn backend has.
+    list(REMOVE_ITEM DUSK_FILES src/dusk/mods/svc/gfx.cpp)
+endif ()
 
 # TODO: version handling for res includes
 
