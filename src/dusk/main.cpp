@@ -28,6 +28,13 @@
 #endif
 #endif
 
+#ifdef __XSDK__
+#include <malloc.h>
+#include <xsdk/kernel.h>
+#include <xsdk/log.h>
+#include <xsdk/splash.h>
+#endif
+
 int game_main(int argc, char* argv[]);
 
 namespace {
@@ -219,10 +226,53 @@ int DuskMain(int argc, char* argv[]) {
 }
 #endif
 
+#ifdef __XSDK__
+constexpr uint32_t SplashMs = 2000;
+// MmQueryStatistics counts 4 KB pages (xenia:src/xenia/kernel/xboxkrnl/xboxkrnl_memory.cc:496).
+constexpr uint32_t PagesPerMB = 1024 * 1024 / 4096;
+
+// The Xbox 360's first step (vulkan4xenon milestone 9): the splash, then the game's memory.
+int XenonFirstStep() {
+    xsdk_log_write("dusklight: started, with the game linked and its static constructors run");
+    if (const NTSTATUS status = xsdk_splash_show(SplashMs); !NT_SUCCESS(status)) {
+        xsdk_log_write("dusklight: xsdk_splash_show failed: 0x%08X", static_cast<unsigned>(status));
+    }
+
+    MM_QUERY_STATISTICS_RESULT statistics{};
+    statistics.size = sizeof(statistics);
+    if (const NTSTATUS status = MmQueryStatistics(&statistics); !NT_SUCCESS(status)) {
+        xsdk_log_write(
+            "dusklight: MmQueryStatistics failed: 0x%08X", static_cast<unsigned>(status));
+        return 1;
+    }
+    const MM_QUERY_STATISTICS_SECTION& title = statistics.title;
+    xsdk_log_write("dusklight: %u MB in all, %u MB the kernel's; the title has %u MB free",
+        static_cast<unsigned>(statistics.total_physical_pages / PagesPerMB),
+        static_cast<unsigned>(statistics.kernel_pages / PagesPerMB),
+        static_cast<unsigned>(title.available_pages / PagesPerMB));
+    xsdk_log_write(
+        "dusklight: title pages: %u image, %u heap, %u stack, %u physical, %u virtual, %u pool",
+        static_cast<unsigned>(title.image_pages), static_cast<unsigned>(title.heap_pages),
+        static_cast<unsigned>(title.stack_pages), static_cast<unsigned>(title.physical_pages),
+        static_cast<unsigned>(title.virtual_pages), static_cast<unsigned>(title.pool_pages));
+
+    const struct mallinfo heap = mallinfo();
+    xsdk_log_write("dusklight: the heap holds %u KB, %u KB of it in use",
+        static_cast<unsigned>(heap.arena / 1024), static_cast<unsigned>(heap.uordblks / 1024));
+    return 0;
+}
+#endif
+
 }  // namespace
 
 int main(int argc, char* argv[]) {
+#ifdef __XSDK__
+    (void)argc;
+    (void)argv;
+    return XenonFirstStep();
+#else
     return DuskMain(argc, argv);
+#endif
 }
 
 #if _WIN32
