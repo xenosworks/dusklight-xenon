@@ -9,6 +9,7 @@
 #include "m_Do/m_Do_audio.h"
 #include "m_Do/m_Do_ext.h"
 
+#include <aurora/gfx.h>
 #include <malloc.h>
 
 #include <algorithm>
@@ -49,6 +50,21 @@ HeapPeak heaps[] = {
 // newlib's heap, which holds the game's memory, Aurora's and everything else's.
 u32 cHeapPeak = 0;
 
+// Aurora's frame pools, each with the most a frame recorded into it (AURORA_*_POOL_SIZE).
+struct PoolPeak {
+    const char* name;
+    uint32_t AuroraStats::* size;
+    uint32_t peak;
+};
+
+PoolPeak pools[] = {
+    {"vertex", &AuroraStats::lastVertSize},
+    {"uniform", &AuroraStats::lastUniformSize},
+    {"index", &AuroraStats::lastIndexSize},
+    {"storage", &AuroraStats::lastStorageSize},
+    {"texture upload", &AuroraStats::lastTextureUploadSize},
+};
+
 std::string stage;
 bool started = false;
 Clock::time_point periodStart;
@@ -66,6 +82,10 @@ void sample_heaps() {
         heap.peak = std::max(heap.peak, heap.size - static_cast<u32>(jkrHeap->getTotalFreeSize()));
     }
     cHeapPeak = std::max(cHeapPeak, static_cast<u32>(mallinfo().uordblks));
+    const AuroraStats* const stats = aurora_get_stats();
+    for (PoolPeak& pool : pools) {
+        pool.peak = std::max(pool.peak, stats->*pool.size);
+    }
 }
 
 }  // namespace
@@ -103,6 +123,10 @@ void after_frame() {
             DuskLog.info("  {}: {} KB of {} KB", heap.name, heap.peak / 1024, heap.size / 1024);
         }
         DuskLog.info("  newlib's: {} KB", cHeapPeak / 1024);
+        DuskLog.info("Aurora's frame pools at their peaks, a frame's:");
+        for (const PoolPeak& pool : pools) {
+            DuskLog.info("  {}: {} KB", pool.name, (pool.peak + 1023) / 1024);
+        }
         dusk::IsRunning = false;
     }
 }

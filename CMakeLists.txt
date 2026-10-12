@@ -71,12 +71,34 @@ if (CMAKE_SYSTEM_NAME STREQUAL Linux)
   set(DAWN_USE_WAYLAND ON CACHE BOOL "Enable support for Wayland surface" FORCE)
 endif ()
 if (XSDK)
-  # The Xbox 360 through xsdk's toolchain file: nothing draws yet, nod's Rust doesn't build there, SDL3 is the xsdk
-  # port, and there's no network, crash handler or code loading.
-  set(AURORA_GFX_BACKEND null CACHE STRING "What draws GX" FORCE)
-  # vulkan4xenon's milestone 10: the null backend records each pipeline's GLSL beside the title, for the offline
-  # compile that the vulkan4xenon backend will draw with.
-  set(AURORA_GLSL_RECORD_DIR "game:/shaders" CACHE STRING "Where the null backend records GLSL" FORCE)
+  # The Xbox 360 through xsdk's toolchain file: nod's Rust doesn't build there, SDL3 is the xsdk port, and there's no
+  # network, crash handler or code loading.
+  # GX draws through the vulkan4xenon layer, with the programs in platforms/xenon/glsl_pack.c: the GLSL a recording
+  # build wrote (platforms/xenon/shaders), compiled offline by Aurora's tools/build_glsl_pack.py. A recording build
+  # draws nothing, on the null backend, and writes each pipeline's GLSL beside the title.
+  option(DUSK_XSDK_RECORD_GLSL "Draw nothing and record each pipeline's GLSL, for the Xbox 360's shader pack" OFF)
+  if (DUSK_XSDK_RECORD_GLSL)
+    set(AURORA_GFX_BACKEND null CACHE STRING "What draws GX" FORCE)
+    set(AURORA_GLSL_RECORD_DIR "game:/shaders" CACHE STRING "Where the null backend records GLSL" FORCE)
+  else ()
+    set(AURORA_GFX_BACKEND vulkan4xenon CACHE STRING "What draws GX" FORCE)
+    set(AURORA_GLSL_RECORD_DIR "" CACHE STRING "Where the null backend records GLSL" FORCE)
+    # The layer, built by its own make against the same xsdk.
+    set(VULKAN4XENON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../vulkan4xenon" CACHE PATH "vulkan4xenon's repository, built")
+    add_library(vulkan4xenon STATIC IMPORTED)
+    set_target_properties(vulkan4xenon PROPERTIES
+        IMPORTED_LOCATION "${VULKAN4XENON_DIR}/build/libvulkan4xenon.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${VULKAN4XENON_DIR}/include;${VULKAN4XENON_DIR}/third_party/vulkan-headers/include")
+    # Aurora's frame pools, which each frame slot keeps in newlib's heap and again in GPU memory, sized from a run in
+    # Xenia through the boot screens and a minute of the title scene, with room to spare. A frame's most: 525 KB of
+    # vertices, 451 KB of uniforms, 223 KB of indices, 448 KB of storage and 7110 KB of texture uploads.
+    set(AURORA_VERTEX_POOL_SIZE 2097152 CACHE STRING "Bytes of vertex data a frame can record" FORCE)
+    set(AURORA_UNIFORM_POOL_SIZE 2097152 CACHE STRING "Bytes of uniform data a frame can record" FORCE)
+    set(AURORA_INDEX_POOL_SIZE 1048576 CACHE STRING "Bytes of index data a frame can record" FORCE)
+    set(AURORA_STORAGE_POOL_SIZE 2097152 CACHE STRING "Bytes of storage data a frame can record" FORCE)
+    set(AURORA_TEXTURE_UPLOAD_POOL_SIZE 8388608 CACHE STRING
+        "Bytes of texture uploads a frame stages in its pool; larger ones are staged apart" FORCE)
+  endif ()
   set(AURORA_NOD_PROVIDER iso CACHE STRING "How to provide nod" FORCE)
   set(AURORA_SDL3_PROVIDER system CACHE STRING "How to provide SDL3" FORCE)
   set(BOREALIS_HTTP_BACKEND none CACHE STRING "HTTP backend for borealis::http" FORCE)
@@ -415,6 +437,9 @@ target_include_directories(dusklight PRIVATE ${miniz_SOURCE_DIR})
 target_link_libraries(dusklight PRIVATE dusk_internal aurora::main ${GAME_LIBS} ${JSYSTEM_LINK_LIBRARIES})
 target_precompile_headers(dusklight PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/include/dusk_pch.hpp>")
 if (XSDK)
+    if (NOT DUSK_XSDK_RECORD_GLSL)
+        target_sources(dusklight PRIVATE platforms/xenon/glsl_pack.c)
+    endif ()
     xsdk_add_xex(dusklight)
 endif ()
 

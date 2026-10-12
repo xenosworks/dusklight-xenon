@@ -703,6 +703,11 @@ int game_main(int argc, char* argv[]) {
         config.windowPosX = -1;
         config.windowPosY = -1;
 
+#ifdef __XSDK__
+        // The Xbox 360 draws into vulkan4xenon's one display, 1280x720, which the console scales to its output.
+        config.windowWidth = 1280;
+        config.windowHeight = 720;
+#else
         const int lastWindowWidth = dusk::getSettings().video.lastWindowWidth.getValue();
         const int lastWindowHeight = dusk::getSettings().video.lastWindowHeight.getValue();
 
@@ -713,6 +718,7 @@ int game_main(int argc, char* argv[]) {
             config.windowWidth = defaultWindowWidth * 2;
             config.windowHeight = defaultWindowHeight * 2;
         }
+#endif
 
         config.desiredBackend = ResolveDesiredBackend(parsed_arg_options);
         config.logCallback = borealis::log::aurora_callback();
