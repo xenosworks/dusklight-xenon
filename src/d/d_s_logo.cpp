@@ -260,6 +260,19 @@ int dScnLogo_c::draw() {
     if (sDrawLogCount < 10) {
         DuskLog.debug("dScnLogo_c::draw: mExecCommand={} mTimer={}", mExecCommand, mTimer);
     }
+    #ifdef __XSDK__
+    // The Xbox 360's run logs each screen the scene goes on to (vulkan4xenon's milestone 10).
+    static int sLoggedCommand = -1;
+    if (mExecCommand != sLoggedCommand) {
+        static constexpr const char* names[] = {"warning in", "warning", "warning out", "Nintendo in",
+            "Nintendo out", "Dolby in", "Dolby out", "Dolby out 2", "progressive in", "progressive select",
+            "progressive out", "progressive set", "progressive set 2", "progressive change", "disc wait",
+            "scene change"};
+        DuskLog.info("Logo scene: {}",
+            mExecCommand < std::size(names) ? names[mExecCommand] : "beyond the GameCube's steps");
+        sLoggedCommand = mExecCommand;
+    }
+    #endif
     cLib_calcTimer<u16>(&mTimer);
     (this->*l_execFunc[mExecCommand])();
     sDrawLogCount++;
@@ -1224,7 +1237,9 @@ int dScnLogo_c::create() {
         mTimer = 30;
         field_0x218 = getProgressiveMode();
     } else {
-        #if TARGET_PC
+        // The Xbox 360 shows the GameCube's warning, Nintendo and Dolby screens while the game loads, as its first
+        // frames drawn (vulkan4xenon's milestone 10).
+        #if TARGET_PC && !defined(__XSDK__)
         mTimer = 0;  // Possibly unnecessary but just in case
         mExecCommand = EXEC_DVD_WAIT;
         #else

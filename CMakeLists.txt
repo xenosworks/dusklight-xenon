@@ -74,6 +74,9 @@ if (XSDK)
   # The Xbox 360 through xsdk's toolchain file: nothing draws yet, nod's Rust doesn't build there, SDL3 is the xsdk
   # port, and there's no network, crash handler or code loading.
   set(AURORA_GFX_BACKEND null CACHE STRING "What draws GX" FORCE)
+  # vulkan4xenon's milestone 10: the null backend records each pipeline's GLSL beside the title, for the offline
+  # compile that the vulkan4xenon backend will draw with.
+  set(AURORA_GLSL_RECORD_DIR "game:/shaders" CACHE STRING "Where the null backend records GLSL" FORCE)
   set(AURORA_NOD_PROVIDER iso CACHE STRING "How to provide nod" FORCE)
   set(AURORA_SDL3_PROVIDER system CACHE STRING "How to provide SDL3" FORCE)
   set(BOREALIS_HTTP_BACKEND none CACHE STRING "HTTP backend for borealis::http" FORCE)
