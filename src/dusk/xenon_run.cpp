@@ -11,6 +11,7 @@
 
 #include <aurora/gfx.h>
 #include <malloc.h>
+#include <xsdk/kernel.h>
 
 #include <algorithm>
 #include <chrono>
@@ -24,6 +25,8 @@ using Clock = std::chrono::steady_clock;
 constexpr const char* TitleStage = "F_SP102";
 constexpr Clock::duration TitleTime = std::chrono::seconds(60);
 constexpr Clock::duration FrameRatePeriod = std::chrono::seconds(10);
+// MmQueryStatistics counts 4 KB pages (xenia:src/xenia/kernel/xboxkrnl/xboxkrnl_memory.cc:496).
+constexpr u32 PagesPerMB = 1024 * 1024 / 4096;
 
 // The heaps the game makes at start, each with its peak (m_Do_machine.cpp, mDoMch_Create;
 // m_Do_main.cpp, main01).
@@ -88,6 +91,26 @@ void sample_heaps() {
     }
 }
 
+// The title's memory as the kernel counts it, exactly on the console though not in Xenia (xsdk's
+// CLAUDE.md), and newlib's heap. GPU memory is physical pages; newlib's heap grows through sbrk.
+void log_memory() {
+    MM_QUERY_STATISTICS_RESULT statistics{};
+    statistics.size = sizeof(statistics);
+    if (const NTSTATUS status = MmQueryStatistics(&statistics); !NT_SUCCESS(status)) {
+        DuskLog.error("MmQueryStatistics failed: {:#010x}", static_cast<u32>(status));
+        return;
+    }
+    const MM_QUERY_STATISTICS_SECTION& title = statistics.title;
+    const struct mallinfo heap = mallinfo();
+    DuskLog.info(
+        "Memory: {} MB free; the title's pages: {} MB physical, {} MB virtual, {} MB heap, {} MB "
+        "stack; newlib's heap {} MB, {} MB of it in use",
+        title.available_pages / PagesPerMB, title.physical_pages / PagesPerMB,
+        title.virtual_pages / PagesPerMB, title.heap_pages / PagesPerMB,
+        title.stack_pages / PagesPerMB, static_cast<u32>(heap.arena) >> 20,
+        static_cast<u32>(heap.uordblks) >> 20);
+}
+
 }  // namespace
 
 void after_frame() {
@@ -102,6 +125,7 @@ void after_frame() {
     if (stage != current) {
         stage = current;
         DuskLog.info("Stage: {}", stage.empty() ? "none" : stage);
+        log_memory();
         if (!inTitle && stage == TitleStage) {
             inTitle = true;
             titleStart = now;
@@ -113,6 +137,7 @@ void after_frame() {
         const double seconds = std::chrono::duration<double>(now - periodStart).count();
         DuskLog.info(
             "{} frames in {:.1f} s, {:.1f} fps", periodFrames, seconds, periodFrames / seconds);
+        log_memory();
         periodStart = now;
         periodFrames = 0;
     }
