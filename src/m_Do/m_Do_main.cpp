@@ -84,7 +84,9 @@
 #include <aurora/event.h>
 #include <borealis/aurora_log.h>
 #include <borealis/cli.hpp>
+#ifndef __XSDK__
 #include <borealis/crash.hpp>
+#endif
 #include <borealis/io.hpp>
 #include <borealis/sentry.hpp>
 #include <borealis/task.hpp>
@@ -651,7 +653,9 @@ int game_main(int argc, char* argv[]) {
         sentryOptions.attachments.emplace_back(logPath);
     }
     borealis::sentry::initialize(sentryOptions);
+#ifndef __XSDK__
     borealis::crash::install();
+#endif
     // TODO: How to handle this?
     // PADSetDefaultMapping(&defaultPadMapping, PAD_TYPE_STANDARD);
 

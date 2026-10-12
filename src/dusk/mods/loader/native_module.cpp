@@ -28,6 +28,18 @@ std::string pl_dlerror() {
     }
     return s;
 }
+#elif defined(__XSDK__)
+// xsdk loads no code into a title at run time.
+void* pl_dlopen(const std::filesystem::path&) {
+    return nullptr;
+}
+void* pl_dlsym(void*, const char*) {
+    return nullptr;
+}
+void pl_dlclose(void*) {}
+std::string pl_dlerror() {
+    return "no native modules on the Xbox 360";
+}
 #else
 #include <dlfcn.h>
 void* pl_dlopen(const std::filesystem::path& p) {

@@ -270,7 +270,9 @@ void ModLoader::init_services() {
             &svc::g_fileModule,
             &svc::g_interpModule,
             &svc::g_httpModule,
+#ifndef __XSDK__
             &svc::g_netModule,
+#endif
             &svc::g_websocketModule,
             &svc::g_hookModule,
             &svc::g_overlayModule,

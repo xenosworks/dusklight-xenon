@@ -21,9 +21,17 @@ bool connectPending = false;
 bool disconnectPending = false;
 uint32_t reconnectCounter = 0;
 std::string storedEndpoint = "tcp://127.0.0.1:16834";
+#ifndef __XSDK__
 std::unique_ptr<borealis::net::Context> netContext;
+#endif
 borealis::net::SocketId socketId = 0;
 
+#ifdef __XSDK__
+// borealis::net is off on the Xbox 360, so LiveSplit never connects.
+void send_cmd(const char*) {}
+void reconnect() {}
+void poll_network() {}
+#else
 void send_cmd(const char* command) {
     if (!netContext || !connected || socketId == 0) {
         return;
@@ -72,6 +80,7 @@ void poll_network() {
         }
     }
 }
+#endif
 
 }  // namespace
 
@@ -128,7 +137,9 @@ void connectLiveSplit(const char* host, int port) {
 }
 
 void disconnectLiveSplit() {
+#ifndef __XSDK__
     netContext.reset();
+#endif
     socketId = 0;
     connected = false;
     connectPending = false;
