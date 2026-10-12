@@ -61,40 +61,53 @@ constexpr u64 be64_manual(u64 val)
 // Big-Endian to Host conversion
 // _manual is behind std::is_constant_evaluated() checks,
 // to avoid pessimizing debug perf too much.
+// On a big-endian host there's nothing to swap, at compile time either.
 constexpr u16 be16(u16 val) {
+#if TARGET_LITTLE_ENDIAN
     if (std::is_constant_evaluated()) {
         return be16_manual(val);
     }
+#endif
     return BSWAP16(val);
 }
 constexpr s16 be16s(s16 val) {
+#if TARGET_LITTLE_ENDIAN
     if (std::is_constant_evaluated()) {
         return (s16)be16_manual((u16)val);
     }
+#endif
     return (s16)BSWAP16((u16)val);
 }
 constexpr u32 be32(u32 val) {
+#if TARGET_LITTLE_ENDIAN
     if (std::is_constant_evaluated()) {
         return be32_manual(val);
     }
+#endif
     return BSWAP32(val);
 }
 constexpr s32 be32s(s32 val) {
+#if TARGET_LITTLE_ENDIAN
     if (std::is_constant_evaluated()) {
         return (s32)be32_manual((u32)val);
     }
+#endif
     return (s32)BSWAP32((u32)val);
 }
 constexpr u64 be64(u64 val) {
+#if TARGET_LITTLE_ENDIAN
     if (std::is_constant_evaluated()) {
         return be64_manual(val);
     }
+#endif
     return BSWAP64(val);
 }
 constexpr s64 be64s(s64 val) {
+#if TARGET_LITTLE_ENDIAN
     if (std::is_constant_evaluated()) {
         return (s64)be64_manual((u64)val);
     }
+#endif
     return (s64)BSWAP64((u64)val);
 }
 
