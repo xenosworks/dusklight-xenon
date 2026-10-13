@@ -19,6 +19,7 @@ layout(set = 0, binding = 4, std140) uniform Material {
 layout(set = 1, binding = 0) uniform sampler2D tex0;
 layout(set = 1, binding = 1) uniform sampler2D tex1;
 layout(set = 1, binding = 2) uniform sampler2D tex2;
+layout(set = 2, binding = 0) uniform sampler2D fog_range_table;
 layout(location = 0) in vec4 in_cc0;
 layout(location = 1) in vec2 in_tex0_uv;
 layout(location = 2) in vec2 in_tex1_uv;
@@ -48,13 +49,9 @@ void main() {
     float fog_ndc = in_fog_zw.x / in_fog_zw.y;
     float fog_depth = uview.depth_range.y - fog_ndc * (uview.depth_range.y - uview.depth_range.x);
     float fog_base = uview.fog[1].x / (uview.fog[1].y - fog_depth);
-    float fog_offset = gl_FragCoord.x / uview.viewport_sizes.x * 2.0 - 1.0 - uview.fog[1].w;
-    float fog_index = clamp(9.0 - abs(fog_offset) * 9.0, 0.0, 9.0);
-    vec4 fog_k0 = max(vec4(1.0) - abs(vec4(fog_index) - vec4(0.0, 1.0, 2.0, 3.0)), vec4(0.0));
-    vec4 fog_k1 = max(vec4(1.0) - abs(vec4(fog_index) - vec4(4.0, 5.0, 6.0, 7.0)), vec4(0.0));
-    vec4 fog_k2 = max(vec4(1.0) - abs(vec4(fog_index) - vec4(8.0, 9.0, 10.0, 11.0)), vec4(0.0));
-    float fog_k = max(dot(uview.fog[2], fog_k0) + dot(uview.fog[3], fog_k1) + dot(uview.fog[4], fog_k2), 0.000001);
-    float fog_f = clamp(fog_base * (sqrt(fog_offset * fog_offset + fog_k * fog_k) / fog_k) - uview.fog[1].z, 0.0, 1.0);
+    float fog_column = gl_FragCoord.x * (1.0 / 64.0);
+    vec4 fog_range = texture(fog_range_table, vec2(fog_column, floor(fog_column) * (1.0 / 32.0) + (0.5 / 32.0)));
+    float fog_f = clamp(fog_base * fog_range.x - uview.fog[1].z, 0.0, 1.0);
     float fog_z = fog_f;
     vec3 fog_color = mix(s3_color, uview.fog[0].rgb, clamp(fog_z, 0.0, 1.0));
     float out_alpha = ((s3_alpha) * 255.0 - floor((s3_alpha) * 255.0 / 256.0) * 256.0) / 255.0;
