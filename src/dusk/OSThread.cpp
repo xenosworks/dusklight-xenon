@@ -26,6 +26,14 @@
 #include <windows.h>
 #elif __APPLE__
 #include <pthread.h>
+#elif defined(__XSDK__)
+#include <xsdk/thread.h>
+#endif
+
+#if defined(__XSDK__)
+// The game's own threads share the Xbox 360's hardware thread 1 with Aurora's GPU waiter, away from
+// the game thread and Aurora's workers (Aurora's lib/thread.cpp; xsdk:SCOPE.md, milestone 26).
+constexpr uint32_t GameThreadsHardwareThread = 1;
 #endif
 
 // ============================================================================
@@ -127,6 +135,15 @@ static OSSwitchThreadCallback sSwitchThreadCallback = nullptr;
 
 // Thread entry wrapper - runs on the new std::thread
 static void ThreadEntryWrapper(OSThread* thread, PCThreadData* data) {
+#if defined(__XSDK__)
+    if (const NTSTATUS status = xsdk_thread_move(GameThreadsHardwareThread); !NT_SUCCESS(status)) {
+        OSReport("[PC-OSThread] Thread %p not moved to hardware thread %u: 0x%08X\n", thread,
+            static_cast<unsigned>(GameThreadsHardwareThread), static_cast<unsigned>(status));
+    } else {
+        OSReport("[PC-OSThread] Thread %p on hardware thread %u\n", thread,
+            static_cast<unsigned>(xsdk_thread_hardware_thread()));
+    }
+#endif
     // Set thread-local pointer
     tls_currentThread = thread;
 
