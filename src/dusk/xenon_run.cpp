@@ -9,6 +9,7 @@
 #include "m_Do/m_Do_audio.h"
 #include "m_Do/m_Do_ext.h"
 
+#include <aurora/aurora.h>
 #include <aurora/gfx.h>
 #include <malloc.h>
 #include <xsdk/kernel.h>
@@ -75,6 +76,12 @@ u32 periodFrames = 0;
 bool inTitle = false;
 Clock::time_point titleStart;
 
+// The title scene's frame this far in, beside the log (aurora_capture_frame): Xenia shows none of vulkan4xenon's
+// frames, as it has no display controller (xsdk's CLAUDE.md), so a capture is how a run there shows one.
+constexpr Clock::duration TitleCaptureTime = std::chrono::seconds(20);
+constexpr const char* TitleCapturePath = "game:\\dusklight_title.ppm";
+bool titleCaptured = false;
+
 void sample_heaps() {
     for (HeapPeak& heap : heaps) {
         JKRHeap* const jkrHeap = heap.get();
@@ -130,6 +137,11 @@ void after_frame() {
             inTitle = true;
             titleStart = now;
         }
+    }
+
+    if (inTitle && !titleCaptured && now - titleStart >= TitleCaptureTime) {
+        titleCaptured = true;
+        aurora_capture_frame(TitleCapturePath);
     }
 
     periodFrames++;
