@@ -89,29 +89,31 @@ if (XSDK)
     set_target_properties(vulkan4xenon PROPERTIES
         IMPORTED_LOCATION "${VULKAN4XENON_DIR}/build/libvulkan4xenon.a"
         INTERFACE_INCLUDE_DIRECTORIES "${VULKAN4XENON_DIR}/include;${VULKAN4XENON_DIR}/third_party/vulkan-headers/include")
-    # Aurora's frame pools, which each frame slot keeps in newlib's heap and again in GPU memory, sized from a run in
-    # Xenia through the boot screens and a minute of the title scene, with room to spare. A frame's most: 525 KB of
-    # vertices, 451 KB of uniforms, 223 KB of indices, 448 KB of storage and 7110 KB of texture uploads.
-    set(AURORA_VERTEX_POOL_SIZE 2097152 CACHE STRING "Bytes of vertex data a frame can record" FORCE)
-    set(AURORA_UNIFORM_POOL_SIZE 2097152 CACHE STRING "Bytes of uniform data a frame can record" FORCE)
-    set(AURORA_INDEX_POOL_SIZE 1048576 CACHE STRING "Bytes of index data a frame can record" FORCE)
-    set(AURORA_STORAGE_POOL_SIZE 2097152 CACHE STRING "Bytes of storage data a frame can record" FORCE)
-    set(AURORA_TEXTURE_UPLOAD_POOL_SIZE 8388608 CACHE STRING
-        "Bytes of texture uploads a frame stages in its pool; larger ones are staged apart" FORCE)
-    # Quads, strips and fans of up to 4096 vertices take their indices from Aurora's patterns, built once, instead of
-    # having them written into the frame's index pool; the patterns' indices are 16-bit (aurora-xenon:CMakeLists.txt).
-    set(AURORA_INDEX_PATTERN_VERTICES 4096 CACHE STRING
-        "Vertices up to which a draw takes its indices from prebuilt patterns" FORCE)
-    # Aurora's texture caches, capped near what the same run used: 9.9 MiB of converted textures kept for reuse, in GPU
-    # memory, and 12.8 MiB converted ahead of their first draw and 1.9 MiB queued for it, in newlib's heap. At the PC's
-    # 128, 128 and 64 MiB they could grow into the last of the console's memory. Past a cap the oldest texture kept or
-    # converted ahead is dropped, or one isn't queued, and a texture is converted at its first draw.
-    set(AURORA_TEXTURE_CONTENT_CACHE_BYTES 16777216 CACHE STRING "Bytes of converted textures kept for reuse" FORCE)
-    set(AURORA_TEXTURE_PRECONVERT_READY_BYTES 16777216 CACHE STRING
-        "Bytes of pre-converted textures waiting for their first draw" FORCE)
-    set(AURORA_TEXTURE_PRECONVERT_QUEUE_BYTES 8388608 CACHE STRING "Bytes of textures queued for pre-conversion"
-        FORCE)
   endif ()
+  # Aurora's frame pools, which each frame slot keeps in newlib's heap and, drawing, again in GPU memory, sized from a
+  # run in Xenia through the boot screens and a minute of the title scene, with room to spare. A recording build takes
+  # them and the caps below too, so its memory is the drawing build's; at Aurora's defaults, its null backend's pools
+  # 63 MiB and its caps the PC's, it had 33 MB more in use. A frame's most: 525 KB of vertices, 451 KB of uniforms,
+  # 223 KB of indices, 448 KB of storage and 7110 KB of texture uploads.
+  set(AURORA_VERTEX_POOL_SIZE 2097152 CACHE STRING "Bytes of vertex data a frame can record" FORCE)
+  set(AURORA_UNIFORM_POOL_SIZE 2097152 CACHE STRING "Bytes of uniform data a frame can record" FORCE)
+  set(AURORA_INDEX_POOL_SIZE 1048576 CACHE STRING "Bytes of index data a frame can record" FORCE)
+  set(AURORA_STORAGE_POOL_SIZE 2097152 CACHE STRING "Bytes of storage data a frame can record" FORCE)
+  set(AURORA_TEXTURE_UPLOAD_POOL_SIZE 8388608 CACHE STRING
+      "Bytes of texture uploads a frame stages in its pool; larger ones are staged apart" FORCE)
+  # Quads, strips and fans of up to 4096 vertices take their indices from Aurora's patterns, built once, instead of
+  # having them written into the frame's index pool; the patterns' indices are 16-bit (aurora-xenon:CMakeLists.txt).
+  set(AURORA_INDEX_PATTERN_VERTICES 4096 CACHE STRING
+      "Vertices up to which a draw takes its indices from prebuilt patterns" FORCE)
+  # Aurora's texture caches, capped near what the same run used: 9.9 MiB of converted textures kept for reuse, in GPU
+  # memory, and 12.8 MiB converted ahead of their first draw and 1.9 MiB queued for it, in newlib's heap. At the PC's
+  # 128, 128 and 64 MiB they could grow into the last of the console's memory. Past a cap the oldest texture kept or
+  # converted ahead is dropped, or one isn't queued, and a texture is converted at its first draw.
+  set(AURORA_TEXTURE_CONTENT_CACHE_BYTES 16777216 CACHE STRING "Bytes of converted textures kept for reuse" FORCE)
+  set(AURORA_TEXTURE_PRECONVERT_READY_BYTES 16777216 CACHE STRING
+      "Bytes of pre-converted textures waiting for their first draw" FORCE)
+  set(AURORA_TEXTURE_PRECONVERT_QUEUE_BYTES 8388608 CACHE STRING "Bytes of textures queued for pre-conversion"
+      FORCE)
   set(AURORA_NOD_PROVIDER iso CACHE STRING "How to provide nod" FORCE)
   set(AURORA_SDL3_PROVIDER system CACHE STRING "How to provide SDL3" FORCE)
   set(BOREALIS_HTTP_BACKEND none CACHE STRING "HTTP backend for borealis::http" FORCE)

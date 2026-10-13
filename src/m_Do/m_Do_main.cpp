@@ -726,7 +726,14 @@ int game_main(int argc, char* argv[]) {
         config.desiredBackend = ResolveDesiredBackend(parsed_arg_options);
         config.logCallback = borealis::log::aurora_callback();
         config.logLevel = borealis::log::to_aurora_level(startupLogLevel);
+#ifdef __XSDK__
+        // MEM1 is the root heap, which parents the system, game, archive and smaller heaps at fixed sizes, 140,176 KB
+        // in all (m_Do_machine.cpp); past start-up only a debug build's camera editor and previewer take from it. The
+        // PC's 256 MiB left 119 of them never handed out, more than the console has free, so 144 leaves about 7.
+        config.mem1Size = 144 * 1024 * 1024;
+#else
         config.mem1Size = 256 * 1024 * 1024;
+#endif
         config.mem2Size = 24 * 1024 * 1024;
         config.allowJoystickBackgroundEvents = dusk::getSettings().game.allowBackgroundInput;
         config.pauseOnFocusLost = dusk::getSettings().game.pauseOnFocusLost;
