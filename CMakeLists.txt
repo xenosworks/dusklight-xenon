@@ -74,9 +74,11 @@ if (XSDK)
   # The Xbox 360 through xsdk's toolchain file: nod's Rust doesn't build there, SDL3 is the xsdk port, and there's no
   # network, crash handler or code loading.
   # GX draws through the vulkan4xenon layer, with the programs in platforms/xenon/glsl_pack.c: the GLSL a recording
-  # build wrote (platforms/xenon/shaders), compiled offline by Aurora's tools/build_glsl_pack.py. A recording build
-  # draws nothing, on the null backend, and writes each pipeline's GLSL beside the title.
+  # build wrote (platforms/xenon/shaders), compiled offline by Aurora's tools/build_glsl_pack.py. A program the pack
+  # doesn't hold is compiled on the console and kept under the cache path. A recording build draws nothing, on the
+  # null backend, and writes each pipeline's GLSL beside the title.
   option(DUSK_XSDK_RECORD_GLSL "Draw nothing and record each pipeline's GLSL, for the Xbox 360's shader pack" OFF)
+  option(DUSK_XSDK_GLSL_PACK "Link the shader pack; without it, every program is compiled on the console" ON)
   if (DUSK_XSDK_RECORD_GLSL)
     set(AURORA_GFX_BACKEND null CACHE STRING "What draws GX" FORCE)
     set(AURORA_GLSL_RECORD_DIR "game:/shaders" CACHE STRING "Where the null backend records GLSL" FORCE)
@@ -89,6 +91,15 @@ if (XSDK)
     set_target_properties(vulkan4xenon PROPERTIES
         IMPORTED_LOCATION "${VULKAN4XENON_DIR}/build/libvulkan4xenon.a"
         INTERFACE_INCLUDE_DIRECTORIES "${VULKAN4XENON_DIR}/include;${VULKAN4XENON_DIR}/third_party/vulkan-headers/include")
+    # glslang, for the programs the pack doesn't hold: GLSL to SPIR-V only, as glslang-xenon's xsdk/ builds it.
+    set(GLSLANG_XENON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../glslang-xenon" CACHE PATH "glslang-xenon's repository")
+    set(ENABLE_OPT OFF CACHE BOOL "" FORCE)
+    set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+    set(ENABLE_GLSLANG_BINARIES OFF CACHE BOOL "" FORCE)
+    set(GLSLANG_TESTS OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXTERNAL OFF CACHE BOOL "" FORCE)
+    set(GLSLANG_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+    add_subdirectory("${GLSLANG_XENON_DIR}" glslang EXCLUDE_FROM_ALL)
   endif ()
   # Aurora's frame pools, which each frame slot keeps in newlib's heap and, drawing, again in GPU memory, sized from a
   # run in Xenia through the boot screens and a minute of the title scene, with room to spare. A recording build takes
@@ -452,7 +463,7 @@ target_include_directories(dusklight PRIVATE ${miniz_SOURCE_DIR})
 target_link_libraries(dusklight PRIVATE dusk_internal aurora::main ${GAME_LIBS} ${JSYSTEM_LINK_LIBRARIES})
 target_precompile_headers(dusklight PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/include/dusk_pch.hpp>")
 if (XSDK)
-    if (NOT DUSK_XSDK_RECORD_GLSL)
+    if (NOT DUSK_XSDK_RECORD_GLSL AND DUSK_XSDK_GLSL_PACK)
         target_sources(dusklight PRIVATE platforms/xenon/glsl_pack.c)
     endif ()
     xsdk_add_xex(dusklight)
