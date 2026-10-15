@@ -81,6 +81,7 @@ Clock::time_point titleStart;
 constexpr Clock::duration TitleCaptureTime = std::chrono::seconds(20);
 constexpr const char* TitleCapturePath = "game:\\dusklight_title.ppm";
 bool titleCaptured = false;
+bool titleLogged = false;
 
 void sample_heaps() {
     for (HeapPeak& heap : heaps) {
@@ -154,7 +155,9 @@ void after_frame() {
         periodFrames = 0;
     }
 
-    if (inTitle && now - titleStart >= TitleTime) {
+    // The game plays on: whoever runs it ends it.
+    if (inTitle && !titleLogged && now - titleStart >= TitleTime) {
+        titleLogged = true;
         DuskLog.info("A minute into the title scene. The heaps at their peaks:");
         for (const HeapPeak& heap : heaps) {
             DuskLog.info("  {}: {} KB of {} KB", heap.name, heap.peak / 1024, heap.size / 1024);
@@ -164,7 +167,6 @@ void after_frame() {
         for (const PoolPeak& pool : pools) {
             DuskLog.info("  {}: {} KB", pool.name, (pool.peak + 1023) / 1024);
         }
-        dusk::IsRunning = false;
     }
 }
 
