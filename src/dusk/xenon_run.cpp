@@ -76,10 +76,12 @@ u32 periodFrames = 0;
 bool inTitle = false;
 Clock::time_point titleStart;
 
-// The title scene's frame this far in, beside the log (aurora_capture_frame): Xenia shows none of vulkan4xenon's
-// frames, as it has no display controller (xsdk's CLAUDE.md), so a capture is how a run there shows one.
-constexpr Clock::duration TitleCaptureTime = std::chrono::seconds(20);
+// The title scene's frame this many in, beside the log (aurora_capture_frame): Xenia shows none of vulkan4xenon's
+// frames, as it has no display controller (xsdk's CLAUDE.md), so a capture is how a run there shows one. Counted in
+// frames, not time, so two runs capture the same frame.
+constexpr u32 TitleCaptureFrame = 600;
 constexpr const char* TitleCapturePath = "game:\\dusklight_title.ppm";
+u32 titleFrames = 0;
 bool titleCaptured = false;
 bool titleLogged = false;
 
@@ -140,7 +142,7 @@ void after_frame() {
         }
     }
 
-    if (inTitle && !titleCaptured && now - titleStart >= TitleCaptureTime) {
+    if (inTitle && !titleCaptured && ++titleFrames >= TitleCaptureFrame) {
         titleCaptured = true;
         aurora_capture_frame(TitleCapturePath);
     }
