@@ -29,7 +29,7 @@ DEFINE_GRASS_ASSET(l_J_Ohana00_64TEX, u8, 0x800, {
 static MtxP get_model_mtx(Mtx modelMtx, Mtx storage);
 static void transform_positions(
     const batch::LeafTemplate& tpl, const Vec* posArray, const Mtx mtx, Vec* xfPos);
-static void split_batch(u32& emitted, u32 vtxCount);
+static void split_batch(u32& emitted, const batch::LeafTemplate& tpl);
 #else
 #include "assets/l_J_Ohana00_64TEX.h"
 #endif
@@ -961,10 +961,10 @@ void dFlower_packet_c::draw() {
                 }
 
                 if (!open) {
-                    GXBegin(GX_TRIANGLES, GX_VTXFMT1, GX_AUTO);
+                    GXBegin(tpl.prim, GX_VTXFMT1, GX_AUTO);
                     open = true;
                 }
-                split_batch(emitted, tpl.vtxCount);
+                split_batch(emitted, tpl);
 
                 Mtx interpMtx;
                 MtxP mtx = get_model_mtx(flower->m_modelMtx, interpMtx);
@@ -1047,10 +1047,10 @@ void dFlower_packet_c::draw() {
                 }
 
                 if (!open) {
-                    GXBegin(GX_TRIANGLES, GX_VTXFMT1, GX_AUTO);
+                    GXBegin(tpl.prim, GX_VTXFMT1, GX_AUTO);
                     open = true;
                 }
-                split_batch(emitted, tpl.vtxCount);
+                split_batch(emitted, tpl);
 
                 Mtx interpMtx;
                 MtxP mtx = get_model_mtx(flower->m_modelMtx, interpMtx);

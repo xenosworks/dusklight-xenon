@@ -624,13 +624,15 @@ static void transform_positions(
     }
 }
 
-static void split_batch(u32& emitted, u32 vtxCount) {
-    if (emitted + vtxCount > 0xFFFF) {
+// A batch of quads stays within the 4096 vertices Aurora has prebuilt indices for (Dusklight's
+// CMakeLists.txt, AURORA_INDEX_PATTERN_VERTICES); one of triangles, within 16-bit indices.
+static void split_batch(u32& emitted, const batch::LeafTemplate& tpl) {
+    if (emitted + tpl.vtxCount > (tpl.prim == GX_QUADS ? 4096u : 0xFFFFu)) {
         GXEnd();
-        GXBegin(GX_TRIANGLES, GX_VTXFMT1, GX_AUTO);
+        GXBegin(tpl.prim, GX_VTXFMT1, GX_AUTO);
         emitted = 0;
     }
-    emitted += vtxCount;
+    emitted += tpl.vtxCount;
 }
 
 static GXColor blade_amb_color(const dGrass_data_c* blade, const dKy_tevstr_c* tevstr) {
@@ -889,11 +891,11 @@ void dGrass_packet_c::draw() {
                                   GX_DF_CLAMP, GX_AF_SPOT);
                     reg1.a = cut ? 0 : shine;
                     GFSetTevColorS10(GX_TEVREG1, reg1);
-                    GXBegin(GX_TRIANGLES, GX_VTXFMT1, GX_AUTO);
+                    GXBegin(tpl.prim, GX_VTXFMT1, GX_AUTO);
                     open = true;
                 }
 
-                split_batch(emitted, tpl.vtxCount);
+                split_batch(emitted, tpl);
 
                 Mtx interpMtx;
                 MtxP mtx = get_model_mtx(blade->m_modelMtx, interpMtx);

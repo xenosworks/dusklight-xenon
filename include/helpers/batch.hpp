@@ -1,5 +1,6 @@
 #pragma once
 
+#include <dolphin/gx/GXEnum.h>
 #include <dolphin/types.h>
 
 namespace batch {
@@ -14,6 +15,10 @@ struct LeafTemplate {
         u8 clr;
         u8 tex;
     };
+    // GX_QUADS when the display list's strips make no more vertices as quads: a batch of quads
+    // takes Aurora's prebuilt indices, where a new triangle list has its own built. Else
+    // GX_TRIANGLES.
+    GXPrimitive prim = GX_TRIANGLES;
     Vtx vtx[kMaxVtx];
     u16 vtxCount = 0;
     u8 posRefs[kMaxPosRefs];
