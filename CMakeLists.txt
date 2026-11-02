@@ -473,7 +473,7 @@ if (XSDK)
         target_sources(dusklight PRIVATE platforms/xenon/glsl_pack.c)
     endif ()
     target_compile_definitions(dusklight PRIVATE DUSK_XSDK_MSAA=${DUSK_XSDK_MSAA})
-    xsdk_add_xex(dusklight TITLE_ID 0x4455534B NAME "Dusklight" VERSION 0.1.0.0)
+    xsdk_add_xex(dusklight TITLE_ID 0x4455534B NAME "Dusklight" VERSION 0.1.1.0)
 endif ()
 
 if (DUSK_ENABLE_CODE_MODS)
