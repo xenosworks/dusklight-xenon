@@ -108,9 +108,10 @@ if (XSDK)
   # run in Xenia through the boot screens and a minute of the title scene, with room to spare. A recording build takes
   # them and the caps below too, so its memory is the drawing build's; at Aurora's defaults, its null backend's pools
   # 63 MiB and its caps the PC's, it had 33 MB more in use. A frame's most: 525 KB of vertices, 451 KB of uniforms,
-  # 223 KB of indices, 448 KB of storage and 7110 KB of texture uploads.
+  # 223 KB of indices, 448 KB of storage and 7110 KB of texture uploads. Play needs more uniforms: Castle Town's
+  # spirits scene (issue #6) overflowed their 2 MB, ending the game, and with 4 MB peaked at 2939 KB in Xenia.
   set(AURORA_VERTEX_POOL_SIZE 2097152 CACHE STRING "Bytes of vertex data a frame can record" FORCE)
-  set(AURORA_UNIFORM_POOL_SIZE 2097152 CACHE STRING "Bytes of uniform data a frame can record" FORCE)
+  set(AURORA_UNIFORM_POOL_SIZE 4194304 CACHE STRING "Bytes of uniform data a frame can record" FORCE)
   set(AURORA_INDEX_POOL_SIZE 1048576 CACHE STRING "Bytes of index data a frame can record" FORCE)
   set(AURORA_STORAGE_POOL_SIZE 2097152 CACHE STRING "Bytes of storage data a frame can record" FORCE)
   set(AURORA_TEXTURE_UPLOAD_POOL_SIZE 8388608 CACHE STRING

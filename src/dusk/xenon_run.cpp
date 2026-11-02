@@ -54,12 +54,17 @@ HeapPeak heaps[] = {
 // newlib's heap, which holds the game's memory, Aurora's and everything else's.
 u32 cHeapPeak = 0;
 
-// Aurora's frame pools, each with the most a frame recorded into it (AURORA_*_POOL_SIZE).
+// Aurora's frame pools, each with the most a frame recorded into it (AURORA_*_POOL_SIZE) and the
+// peak last logged.
 struct PoolPeak {
     const char* name;
     uint32_t AuroraStats::* size;
     uint32_t peak;
+    uint32_t logged;
 };
+
+// Climbs smaller than this aren't logged, so a small pool's peak doesn't fill the log.
+constexpr uint32_t PoolPeakStep = 64 * 1024;
 
 PoolPeak pools[] = {
     {"vertex", &AuroraStats::lastVertSize},
@@ -166,8 +171,21 @@ void after_frame() {
         }
         DuskLog.info("  newlib's: {} KB", cHeapPeak / 1024);
         DuskLog.info("Aurora's frame pools at their peaks, a frame's:");
-        for (const PoolPeak& pool : pools) {
+        for (PoolPeak& pool : pools) {
             DuskLog.info("  {}: {} KB", pool.name, (pool.peak + 1023) / 1024);
+            pool.logged = pool.peak;
+        }
+    }
+
+    // From then on, a pool's peak is logged again each time it climbs by an eighth, so a log shows
+    // how near a frame came to filling it before the game ended.
+    if (titleLogged) {
+        for (PoolPeak& pool : pools) {
+            if (pool.peak - pool.logged > std::max(pool.logged / 8, PoolPeakStep)) {
+                DuskLog.info("Aurora's {} pool: {} KB in a frame, the most yet", pool.name,
+                             (pool.peak + 1023) / 1024);
+                pool.logged = pool.peak;
+            }
         }
     }
 }
