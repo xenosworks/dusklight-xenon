@@ -99,7 +99,9 @@ void sample_heaps() {
         heap.size = jkrHeap->getHeapSize();
         heap.peak = std::max(heap.peak, heap.size - static_cast<u32>(jkrHeap->getTotalFreeSize()));
     }
-    cHeapPeak = std::max(cHeapPeak, static_cast<u32>(mallinfo().uordblks));
+    // Blocks of 256 KB or more are mapped apart from the heap (xsdk's newlib): hblkhd.
+    const struct mallinfo c = mallinfo();
+    cHeapPeak = std::max(cHeapPeak, static_cast<u32>(c.uordblks + c.hblkhd));
     const AuroraStats* const stats = aurora_get_stats();
     for (PoolPeak& pool : pools) {
         pool.peak = std::max(pool.peak, stats->*pool.size);
@@ -119,11 +121,12 @@ void log_memory() {
     const struct mallinfo heap = mallinfo();
     DuskLog.info(
         "Memory: {} MB free; the title's pages: {} MB physical, {} MB virtual, {} MB heap, {} MB "
-        "stack; newlib's heap {} MB, {} MB of it in use",
+        "stack; newlib's heap {} MB, {} MB of it in use, and {} MB in {} large blocks mapped apart",
         title.available_pages / PagesPerMB, title.physical_pages / PagesPerMB,
         title.virtual_pages / PagesPerMB, title.heap_pages / PagesPerMB,
         title.stack_pages / PagesPerMB, static_cast<u32>(heap.arena) >> 20,
-        static_cast<u32>(heap.uordblks) >> 20);
+        static_cast<u32>(heap.uordblks) >> 20, static_cast<u32>(heap.hblkhd) >> 20,
+        static_cast<u32>(heap.hblks));
 }
 
 }  // namespace

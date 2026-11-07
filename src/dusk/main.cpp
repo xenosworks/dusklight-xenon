@@ -261,8 +261,9 @@ void XenonStart() {
         static_cast<unsigned>(title.virtual_pages), static_cast<unsigned>(title.pool_pages));
 
     const struct mallinfo heap = mallinfo();
-    xsdk_log_write("dusklight: the heap holds %u KB, %u KB of it in use",
-        static_cast<unsigned>(heap.arena / 1024), static_cast<unsigned>(heap.uordblks / 1024));
+    xsdk_log_write("dusklight: the heap holds %u KB, %u KB of it in use; %u KB in large blocks mapped apart",
+        static_cast<unsigned>(heap.arena / 1024), static_cast<unsigned>(heap.uordblks / 1024),
+        static_cast<unsigned>(heap.hblkhd / 1024));
 }
 #endif
 
